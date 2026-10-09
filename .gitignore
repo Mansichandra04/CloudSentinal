@@ -1,0 +1,17 @@
+
+# Local database containing practice login records
+cloudsentinel.db
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment variables and local secrets
+.env
+
+# Editor settings
+.vscode/
