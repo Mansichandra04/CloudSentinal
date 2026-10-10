@@ -157,7 +157,7 @@ def create_test_login(
         max_length=45
     )
 ):
-    """Create a validated test login event for dashboard demonstrations."""
+    """Create a validated test login event."""
 
     username = username.strip()
     status = status.lower()
