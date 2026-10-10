@@ -1,7 +1,7 @@
 
 from datetime import datetime, timedelta
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 
 from cloudsentinel_data import get_login_records, add_login_record
@@ -122,9 +122,10 @@ def create_test_login(username: str = "testuser",
     """Create a test login event for dashboard demonstrations."""
 
     if status.lower() not in ("success", "failed"):
-        return {
-            "error": "Status must be 'success' or 'failed'."
-        }
+       raise HTTPException(
+        status_code=400,
+        detail="Status must be 'success' or 'failed'."
+    )
 
     add_login_record(
         username=username,
