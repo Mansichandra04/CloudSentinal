@@ -1,11 +1,12 @@
+
 import ipaddress
 from datetime import datetime, timedelta
+from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.templating import Jinja2Templates
 
 from cloudsentinel_data import get_login_records, add_login_record
-from pathlib import Path
 
 
 app = FastAPI(
@@ -15,12 +16,9 @@ app = FastAPI(
 )
 
 
-
 templates = Jinja2Templates(
     directory=str(Path(__file__).resolve().parent / "templates")
 )
-
-
 
 
 def detect_security_alerts(records):
@@ -72,7 +70,7 @@ def detect_security_alerts(records):
                 })
                 break
 
-    # Rule 2: One username seen from multiple IP addresses.
+    # Rule 2: One username seen from three or more IP addresses.
     for username, ip_addresses in ips_by_user.items():
         if len(ip_addresses) >= 3:
             alerts.append({
@@ -86,7 +84,6 @@ def detect_security_alerts(records):
             })
 
     return alerts
-
 
 
 @app.get("/")
@@ -126,6 +123,7 @@ def health_check():
 @app.get("/api/logins")
 def read_login_records():
     records = get_login_records()
+
     return {
         "count": len(records),
         "records": records
@@ -135,54 +133,59 @@ def read_login_records():
 @app.get("/api/alerts")
 def read_security_alerts():
     alerts = detect_security_alerts(get_login_records())
+
     return {
         "alert_count": len(alerts),
         "alerts": alerts
     }
 
 
-
 @app.post("/api/test-login")
 def create_test_login(
-    username: str = "testuser",
-    status: str = "failed",
-    ip_address: str = "192.168.1.100"
+    username: str = Query(
+        default="testuser",
+        min_length=1,
+        max_length=50
+    ),
+    status: str = Query(
+        default="failed",
+        pattern="^(success|failed)$"
+    ),
+    ip_address: str = Query(
+        default="192.168.1.100",
+        min_length=2,
+        max_length=45
+    )
 ):
-    """Create a test login event for dashboard demonstrations."""
+    """Create a validated test login event for dashboard demonstrations."""
 
+    username = username.strip()
     status = status.lower()
+    ip_address = ip_address.strip()
 
-    if status not in ("success", "failed"):
-        raise HTTPException(
-            status_code=400,
-            detail="Status must be 'success' or 'failed'."
-        )
-
-    if not username.strip():
+    if not username:
         raise HTTPException(
             status_code=400,
             detail="Username cannot be empty."
         )
 
-    
     try:
-      ip_address = str(ipaddress.ip_address(ip_address.strip()))
+        ip_address = str(ipaddress.ip_address(ip_address))
     except ValueError:
-      raise HTTPException(
-        status_code=400,
-        detail="Invalid IP address. Enter a valid IPv4 or IPv6 address."
-    )
-
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid IP address. Enter a valid IPv4 or IPv6 address."
+        )
 
     add_login_record(
-        username=username.strip(),
-        ip_address=ip_address.strip(),
+        username=username,
+        ip_address=ip_address,
         status=status
     )
 
     return {
         "message": "Test login event added successfully",
-        "username": username.strip(),
+        "username": username,
         "status": status,
-        "ip_address": ip_address.strip()
+        "ip_address": ip_address
     }
