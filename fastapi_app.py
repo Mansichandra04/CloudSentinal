@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 
-from cloudsentinel_data import get_login_records
+from cloudsentinel_data import get_login_records, add_login_record
 from pathlib import Path
 
 
@@ -113,4 +113,27 @@ def read_security_alerts():
     return {
         "alert_count": len(alerts),
         "alerts": alerts
+    }
+
+
+@app.post("/api/test-login")
+def create_test_login(username: str = "testuser",
+                      status: str = "failed"):
+    """Create a test login event for dashboard demonstrations."""
+
+    if status.lower() not in ("success", "failed"):
+        return {
+            "error": "Status must be 'success' or 'failed'."
+        }
+
+    add_login_record(
+        username=username,
+        ip_address="192.168.1.100",
+        status=status.lower()
+    )
+
+    return {
+        "message": "Test login event added successfully",
+        "username": username,
+        "status": status.lower()
     }
