@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudSentinel | Security Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        header {
+            background: #1e293b;
+            padding: 22px 35px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #refreshButton {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #refreshButton:hover {
+            background: #0369a1;
+        }
+
+        #refreshButton:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #lastUpdated {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        header h1 {
+            margin: 0;
+            color: #38bdf8;
+        }
+
+        header p {
+            margin-bottom: 0;
+            color: #94a3b8;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .card, .panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .green {
+            color: #4ade80;
+        }
+
+        .red {
+            color: #f87171;
+        }
+
+        .blue {
+            color: #38bdf8;
+        }
+
+        .panel {
+            margin-bottom: 25px;
+            overflow-x: auto;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            color: #38bdf8;
+        }
+
+        .alert {
+            background: #451a1a;
+            border: 1px solid #ef4444;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            color: #fecaca;
+        }
+
+        .safe {
+            color: #4ade80;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>CloudSentinel</h1>
+                <p>Cloud Security Monitoring &amp; Access Audit System</p>
+            </div>
+
+            <button onclick="refreshDashboard()" id="refreshButton">
+                ↻ Refresh Dashboard
+            </button>
+        </div>
+
+        <p id="lastUpdated">Dashboard loaded</p>
+    </header>
+
+    <main>
+        <!-- Dashboard statistics -->
+        <section class="cards">
+            <div class="card">
+                <h3>Total Login Events</h3>
+                <div class="number blue" id="totalLogins">
+                    {{ total_logins }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Successful Logins</h3>
+                <div class="number green" id="successfulLogins">
+                    {{ successful_logins }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Failed Logins</h3>
+                <div class="number red" id="failedLogins">
+                    {{ failed_logins }}
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Security Alerts</h3>
+                <div class="number red" id="alertCount">
+                    {{ alert_count }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Security alerts -->
+        <section class="panel">
+            <h2>Security Alerts</h2>
+            <div id="alertsContainer">
+                {% if alerts %}
+                    {% for alert in alerts %}
+                        <div class="alert">
+                            <strong>{{ alert.severity }} ALERT</strong><br>
+                            {{ alert.message }}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="safe">No suspicious login activity detected.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Login activity -->
+        <section class="panel">
+            <h2>Recent Login Activity</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                        <th>Event Time</th>
+                    </tr>
+                </thead>
+
+                <tbody id="loginRecords">
+                    {% for record in records %}
+                        <tr>
+                            <td>{{ record.username }}</td>
+                            <td>{{ record.ip_address }}</td>
+                            <td class="{% if record.status|lower == 'success' %}green{% else %}red{% endif %}">
+                                {{ record.status }}
+                            </td>
+                            <td>{{ record.event_time }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No login records found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        CloudSentinel · Built with Python, FastAPI and SQLite
+    </footer>
+
+    <script>
+        async function refreshDashboard() {
+            const button = document.getElementById("refreshButton");
+            const status = document.getElementById("lastUpdated");
+
+            button.disabled = true;
+            button.textContent = "Refreshing...";
+
+            try {
+                // Request the latest login records and alerts.
+                const [loginResponse, alertResponse] = await Promise.all([
+                    fetch("/api/logins"),
+                    fetch("/api/alerts")
+                ]);
+
+                if (!loginResponse.ok || !alertResponse.ok) {
+                    throw new Error("Could not retrieve dashboard data.");
+                }
+
+                const loginData = await loginResponse.json();
+                const alertData = await alertResponse.json();
+
+                const records = loginData.records;
+                const alerts = alertData.alerts;
+
+                // Update the four statistic cards.
+                document.getElementById("totalLogins").textContent =
+                    records.length;
+
+                document.getElementById("successfulLogins").textContent =
+                    records.filter(
+                        record => record.status.toLowerCase() === "success"
+                    ).length;
+
+                document.getElementById("failedLogins").textContent =
+                    records.filter(
+                        record => record.status.toLowerCase() === "failed"
+                    ).length;
+
+                document.getElementById("alertCount").textContent =
+                    alerts.length;
+
+                // Update the security alerts section.
+                const alertsContainer =
+                    document.getElementById("alertsContainer");
+
+                alertsContainer.replaceChildren();
+
+                if (alerts.length > 0) {
+                    alerts.forEach(alert => {
+                        const alertBox = document.createElement("div");
+                        alertBox.className = "alert";
+
+                        const heading = document.createElement("strong");
+                        heading.textContent = alert.severity + " ALERT";
+
+                        const message = document.createElement("p");
+                        message.textContent = alert.message;
+
+                        alertBox.appendChild(heading);
+                        alertBox.appendChild(document.createElement("br"));
+                        alertBox.appendChild(message);
+
+                        alertsContainer.appendChild(alertBox);
+                    });
+                } else {
+                    const safeMessage = document.createElement("p");
+                    safeMessage.className = "safe";
+                    safeMessage.textContent =
+                        "No suspicious login activity detected.";
+
+                    alertsContainer.appendChild(safeMessage);
+                }
+
+                // Update the recent login activity table.
+                const tableBody = document.getElementById("loginRecords");
+                tableBody.replaceChildren();
+
+                if (records.length > 0) {
+                    records.forEach(record => {
+                        const row = document.createElement("tr");
+
+                        const usernameCell = document.createElement("td");
+                        usernameCell.textContent = record.username;
+
+                        const ipCell = document.createElement("td");
+                        ipCell.textContent = record.ip_address;
+
+                        const statusCell = document.createElement("td");
+                        statusCell.textContent = record.status;
+                        statusCell.className =
+                            record.status.toLowerCase() === "success"
+                                ? "green"
+                                : "red";
+
+                        const timeCell = document.createElement("td");
+                        timeCell.textContent = record.event_time;
+
+                        row.append(
+                            usernameCell,
+                            ipCell,
+                            statusCell,
+                            timeCell
+                        );
+
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement("tr");
+                    const cell = document.createElement("td");
+
+                    cell.colSpan = 4;
+                    cell.textContent = "No login records found.";
+
+                    row.appendChild(cell);
+                    tableBody.appendChild(row);
+                }
+
+                status.textContent =
+                    "Last updated: " + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                status.textContent =
+                    "Refresh failed. Please check your server connection.";
+                console.error("Dashboard refresh error:", error);
+            } finally {
+                button.disabled = false;
+                button.textContent = "↻ Refresh Dashboard";
+            }
+        }
+
+        // Automatically update the dashboard every 10 seconds.
+        document.getElementById("lastUpdated").textContent =
+            "Last updated: " + new Date().toLocaleTimeString();
+
+        setInterval(refreshDashboard, 10000);
+    </script>
+</body>
+</html>
