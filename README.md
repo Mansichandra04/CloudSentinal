@@ -131,6 +131,7 @@ To stop the server, press `Ctrl + C` in the terminal.
 4. It checks whether five or more failed attempts occurred within a five-minute window.
 5. If the threshold is reached, it generates a HIGH-severity security alert.
 6. The dashboard displays the alert and updates its statistics automatically.
+- **Multiple-IP Detection:** Generates a medium-severity alert when the same username has login activity from three or more distinct IP addresses.
 
 This rule-based approach demonstrates a basic security monitoring technique for identifying repeated authentication failures.
 
