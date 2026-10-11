@@ -1,60 +1,67 @@
-# CloudSentinel – Cloud Security Monitoring and Access Audit System
+# CloudSentinel – Login Activity Monitoring System
 
 ## Project Overview
 
-CloudSentinel is a Python-based security monitoring and access audit system designed to analyze login activity and identify potentially suspicious authentication behavior.
+CloudSentinel is a Python-based login activity monitoring and access auditing project that demonstrates how suspicious authentication patterns can be identified using rule-based security monitoring.
 
-The project uses FastAPI to provide a web application and REST API, SQLite to store login records, and an HTML dashboard to display login statistics and security alerts.
+The application uses FastAPI for its web application and REST APIs, SQLite for storing login records, and an HTML dashboard for displaying login statistics and security alerts.
 
-It detects repeated failed login attempts and flags suspicious activity for further investigation.
+It also includes a demonstration login page that records successful and failed login attempts.
 
 ## Features
 
-- **Login Activity Monitoring:** Displays recorded login events, including usernames, IP addresses, login statuses, and event timestamps.
-- **Security Alert Detection:** Generates a HIGH-severity alert when a user has five or more failed login attempts within a five-minute window.
-- **Interactive Dashboard:** Displays total login events, successful logins, failed logins, and security alerts.
-- **Automatic Dashboard Updates:** Refreshes dashboard data automatically every 10 seconds without reloading the entire page.
-- **REST API:** Provides endpoints to retrieve login records, security alerts, and application health status.
-- **SQLite Database:** Stores login activity for monitoring and auditing.
-- **Test Login Generator:** Generate successful and failed login events directly from the dashboard for demonstration and testing.
-- **Interactive Dashboard Refresh:** View updated login statistics, recent activity, and security alerts after generating test events.
+- **Login Activity Monitoring:** Records usernames, IP addresses, login statuses, and timestamps.
+- **Password Hashing:** Stores password hashes instead of plain-text passwords for registered demo users.
+- **Failed Login Detection:** Generates a HIGH-severity alert when a username has five or more failed login attempts within a five-minute window.
+- **Multiple-IP Detection:** Generates a MEDIUM-severity alert when a username has login activity from three or more distinct IP addresses.
+- **Interactive Dashboard:** Displays login statistics, recent activity, and security alerts.
+- **Automatic Dashboard Updates:** Refreshes dashboard data periodically without reloading the entire page.
+- **REST API:** Provides endpoints for login records, security alerts, and application health.
+- **Test Event Generation:** Supports generating sample login events for demonstration and testing.
 
 ## Technologies Used
 
-- **Programming Language:** Python
-- **Backend Framework:** FastAPI
+- **Language:** Python
+- **Backend:** FastAPI
 - **Database:** SQLite
 - **Frontend:** HTML, CSS, JavaScript
-- **Templating Engine:** Jinja2
+- **Templating:** Jinja2
+- **Password Hashing:** Werkzeug
 - **Development Tools:** Visual Studio Code, Git, GitHub
 
 ## Project Structure
 
 ```text
-CloudSentinel/
+CloudSentinal/
 ├── main.py
 ├── database.py
 ├── monitor.py
 ├── app.py
 ├── fastapi_app.py
 ├── cloudsentinel_data.py
-├── cloudsentinel.db
-├── templates/
-│   └── dashboard.html
+├── requirements.txt
+├── .gitignore
 ├── README.md
-└── .gitignore
+├── start_project.bat
+├── start_dashboard.bat
+└── templates/
+    ├── dashboard.html
+    └── login.html
 ```
 
-**Important files:**
+The SQLite database is created locally and is excluded from version control.
 
-- `fastapi_app.py` – Main FastAPI application, dashboard route, API endpoints, and security alert detection.
-- `cloudsentinel_data.py` – Retrieves login records from the SQLite database.
-- `templates/dashboard.html` – Dashboard interface and automatic data updates.
-- `database.py` – Initializes the login log table and inserts sample records.
-- `monitor.py` – Earlier login monitoring implementation.
-- `app.py` – Earlier Flask dashboard implementation.
+### Important files
 
-The SQLite database file is created locally and is not intended to be committed to GitHub.
+- `fastapi_app.py` — Main FastAPI application, dashboard, login routes, and API endpoints.
+- `cloudsentinel_data.py` — Database operations, login records, and user password verification.
+- `templates/dashboard.html` — Dashboard interface and automatic data refresh.
+- `templates/login.html` — Demonstration login form.
+- `database.py` — Database initialization and sample data setup.
+- `monitor.py` — Earlier login monitoring implementation.
+- `app.py` — Earlier Flask dashboard implementation.
+- `requirements.txt` — Python dependencies.
+- `.gitignore` — Excludes local files and environment-specific data from Git.
 
 ## Installation and Setup
 
@@ -75,108 +82,126 @@ git clone https://github.com/Mansichandra04/CloudSentinal.git
 cd CloudSentinal
 ```
 
-### 3. Create a virtual environment
+### 3. Create and activate a virtual environment
+
+On Windows:
 
 ```bash
-python -m venv venv
-```
-
-Activate it on Windows:
-
-```bash
-venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
 ### 4. Install dependencies
 
 ```bash
-python -m pip install fastapi uvicorn jinja2
+python -m pip install -r requirements.txt
 ```
 
-### 5. Initialize the database
+### 5. Initialize the database if needed
 
-If you are setting up the project for the first time and the local database does not exist, initialize it using:
+If this is a fresh setup and the required database tables have not been created, follow the database initialization process in `database.py` and the application's database module.
 
-```bash
-python database.py
-```
-
-**Warning:** Running `database.py` again may recreate the practice table and replace its existing sample records. Do not rerun it if you want to preserve existing data.
+**Warning:** Check `database.py` before running it. It may recreate tables or replace existing sample records. Do not rerun it if you want to preserve existing practice data.
 
 ## Running the Application
 
-Start the FastAPI server from the project directory:
+From the project directory, start the FastAPI server:
 
 ```bash
 python -m uvicorn fastapi_app:app --reload
 ```
 
-Open the following URLs in your browser:
+Open these URLs in your browser:
 
 | URL | Purpose |
 |---|---|
 | `http://127.0.0.1:8000` | Security dashboard |
+| `http://127.0.0.1:8000/login` | Demonstration login page |
 | `http://127.0.0.1:8000/docs` | Interactive API documentation |
 | `http://127.0.0.1:8000/health` | Application health check |
-| `http://127.0.0.1:8000/api/logins` | Retrieve login records |
-| `http://127.0.0.1:8000/api/alerts` | Retrieve security alerts |
+| `http://127.0.0.1:8000/api/logins` | Login records |
+| `http://127.0.0.1:8000/api/alerts` | Security alerts |
 
 To stop the server, press `Ctrl + C` in the terminal.
 
-## How Security Alert Detection Works
+## Testing the Login Page
 
-1. The application retrieves login records from the SQLite database.
-2. It identifies records with a failed login status.
-3. It groups failed attempts by username.
-4. It checks whether five or more failed attempts occurred within a five-minute window.
-5. If the threshold is reached, it generates a HIGH-severity security alert.
-6. The dashboard displays the alert and updates its statistics automatically.
-- **Multiple-IP Detection:** Generates a medium-severity alert when the same username has login activity from three or more distinct IP addresses.
+1. Start the application.
+2. Open `http://127.0.0.1:8000/login`.
+3. Enter the credentials for a user registered in your local demo database.
+4. A successful login records a successful event.
+5. An unsuccessful login records a failed event.
+6. Open the dashboard to inspect the recorded activity and any triggered alerts.
 
-This rule-based approach demonstrates a basic security monitoring technique for identifying repeated authentication failures.
+The login feature demonstrates password verification and event logging. It is not production-ready authentication.
+
+## Security Alert Detection
+
+### 1. Repeated failed login attempts
+
+- **Severity:** HIGH
+- **Condition:** Five or more failed login attempts for the same username within a five-minute window.
+- **Purpose:** Demonstrates detection of repeated authentication failures.
+
+### 2. Login activity from multiple IP addresses
+
+- **Severity:** MEDIUM
+- **Condition:** The same username has activity from three or more distinct IP addresses.
+- **Purpose:** Highlights activity that may warrant investigation.
+
+These are demonstration rules, not proof of an attack. Multiple IP addresses can be legitimate, and repeated failures can have benign causes.
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/` | Displays the security dashboard |
+| GET | `/` | Displays the dashboard |
+| GET | `/login` | Displays the login form |
+| POST | `/login` | Processes a login attempt |
 | GET | `/health` | Returns application health status |
-| GET | `/api/logins` | Returns login records in JSON format |
-| GET | `/api/alerts` | Returns detected security alerts in JSON format |
-- `POST /api/test-login` — Adds a test login event. Optional query parameters: `username` and `status` (`success` or `failed`).
+| GET | `/api/logins` | Returns login records |
+| GET | `/api/alerts` | Returns security alerts |
+| POST | `/api/test-login` | Generates a test login event when enabled |
 
-## Current Scope and Limitations
+Use `/docs` to inspect the available API operations and parameters.
 
-- The current version analyzes login records already stored in the local SQLite database.
-- The dashboard does not independently generate real login events.
-- The alert detection uses a fixed threshold of five failed attempts within five minutes.
-- This is an educational project and is not a replacement for a production cloud security monitoring platform.
+The test-login endpoint is intended for development and demonstration. Its availability may be disabled in hosted environments.
+
+## Security and Limitations
+
+- This is an educational project, not a production security monitoring platform.
+- The current application uses a local SQLite database.
+- Login events are generated by the demonstration application or its test functionality; they are not automatically collected from external cloud services.
+- The alert rules use fixed thresholds and may produce false positives.
+- Production deployment would require additional protections, including secure session management, CSRF protection where applicable, rate limiting, secure configuration, and appropriate access controls.
+- Do not commit `.env` files, credentials, or local database files to the repository.
 
 ## Future Enhancements
 
-- Add a controlled test feature to generate sample login events.
-- Display new security alerts as login activity changes.
-- Add filters for usernames, login statuses, and timestamps.
-- Introduce alert history and additional detection rules.
+- Detect successful logins following repeated failed attempts.
+- Add unusual login-time detection.
+- Identify repeated attempts across multiple usernames.
+- Add filters for usernames, statuses, and timestamps.
+- Improve alert history and severity reporting.
 - Explore integration with cloud audit logs.
 
 ## Learning Outcomes
 
-Through this project, I am developing practical experience with:
+This project provides practical experience with:
 
-- Python backend development
-- REST API development using FastAPI
+- Python application development
+- FastAPI and REST APIs
 - SQLite database operations
-- Authentication log analysis
-- Rule-based security alert detection
+- Password hashing and verification
+- Login auditing and event logging
+- Rule-based security monitoring
 - HTML, CSS, and JavaScript
 - Git and GitHub version control
 
 ## Author
 
-Developed as a cybersecurity-focused academic project to demonstrate basic security monitoring, login auditing, and suspicious authentication detection.
+Developed as a cybersecurity-focused academic project demonstrating login monitoring, access auditing, and suspicious authentication detection.
 
 ## License
 
 This project is intended for educational and learning purposes.
-```
