@@ -1,5 +1,6 @@
 
 import ipaddress
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -158,7 +159,11 @@ def create_test_login(
     )
 ):
     """Create a validated test login event."""
-
+    if os.getenv("RENDER"):
+        raise HTTPException(
+            status_code=404,
+            detail="Test login is disabled on the public website."
+        )
     username = username.strip()
     status = status.lower()
     ip_address = ip_address.strip()
