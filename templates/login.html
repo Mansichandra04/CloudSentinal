@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Activity Monitoring System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            box-shadow: 0 4px 12px #00000015;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        input, button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 11px;
+            margin-top: 12px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .error {
+            color: #dc2626;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>User Login</h2>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" action="/login">
+            <input
+                type="text"
+                name="username"
+                placeholder="Username"
+                required
+                maxlength="50"
+                autocomplete="username"
+            >
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                required
+                maxlength="128"
+                autocomplete="current-password"
+            >
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

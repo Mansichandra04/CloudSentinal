@@ -4,10 +4,10 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException, Query
+from fastapi import FastAPI, Request, HTTPException, Query,Form
 from fastapi.templating import Jinja2Templates
 
-from cloudsentinel_data import get_login_records, add_login_record
+from cloudsentinel_data import get_login_records, add_login_record,verify_user
 
 
 app = FastAPI(
@@ -113,6 +113,49 @@ def dashboard(request: Request):
             "alerts": alerts,
             "records": records
         }
+    )
+
+
+@app.get("/login")
+def login_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": None}
+    )
+
+
+@app.post("/login")
+def process_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    username = username.strip()
+
+    if verify_user(username, password):
+        add_login_record(
+            username=username,
+            ip_address=request.client.host if request.client else "unknown",
+            status="success"
+        )
+
+        return {
+            "message": "Login successful",
+            "username": username
+        }
+
+    add_login_record(
+        username=username,
+        ip_address=request.client.host if request.client else "unknown",
+        status="failed"
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error": "Invalid username or password."},
+        status_code=401
     )
 
 
